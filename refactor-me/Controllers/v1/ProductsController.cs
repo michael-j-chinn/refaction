@@ -23,26 +23,26 @@ namespace refactor_me.Controllers
 
 		[Route]
 		[HttpGet]
-		public IHttpActionResult GetAll()
+		public async Task<IHttpActionResult> GetAllAsync()
 		{
-			return Ok(_productRepository.GetAll());
+			return Ok(await _productRepository.GetAllAsync());
 		}
 
 		[Route]
 		[HttpGet]
-		public IHttpActionResult SearchByName(string name)
+		public async Task<IHttpActionResult> SearchByNameAsync(string name)
 		{
-			return Ok(_productRepository.GetByName(name));
+			return Ok(await _productRepository.GetByNameAsync(name));
 		}
 
 		[Route("{id}")]
 		[HttpGet]
-		public IHttpActionResult GetProduct(Guid id)
+		public async Task<IHttpActionResult> GetProductAsync(Guid id)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
-			var product = _productRepository.GetById(id);
+			var product = await _productRepository.GetByIdAsync(id);
 
 			if (product == null)
 				return NotFound();
@@ -51,14 +51,14 @@ namespace refactor_me.Controllers
 		}
 
 		[HttpPost]
-		public IHttpActionResult Create([FromBody] Product product)
+		public async Task<IHttpActionResult> CreateAsync([FromBody] Product product)
 		{
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			_productRepository.Save(product);
+			await _productRepository.SaveAsync(product);
 
-			var newProduct = _productRepository.GetById(product.Id);
+			var newProduct = await _productRepository.GetByIdAsync(product.Id);
 
 			if (newProduct == null)
 				return InternalServerError();
@@ -68,7 +68,7 @@ namespace refactor_me.Controllers
 
 		[Route("{id}")]
 		[HttpPut]
-		public IHttpActionResult Update(Guid id, [FromBody] Product updatedProduct)
+		public async Task<IHttpActionResult> UpdateAsync(Guid id, [FromBody] Product updatedProduct)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
@@ -76,29 +76,29 @@ namespace refactor_me.Controllers
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			var existingProduct = _productRepository.GetById(id);
+			var existingProduct = await _productRepository.GetByIdAsync(id);
 
 			if (existingProduct == null)
 				return NotFound();
 
-			_productRepository.Update(id, updatedProduct);
+			await _productRepository.UpdateAsync(id, updatedProduct);
 
 			return Ok();
 		}
 
 		[Route("{id}")]
 		[HttpDelete]
-		public IHttpActionResult Delete(Guid id)
+		public async Task<IHttpActionResult> DeleteAsync(Guid id)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
-			var productToDelete = _productRepository.GetById(id);
+			var productToDelete = await _productRepository.GetByIdAsync(id);
 
 			if (productToDelete == null)
 				return NotFound();
 
-			_productRepository.Delete(id);
+			await _productRepository.DeleteAsync(id);
 
 			return Ok();
 		}

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace refactor_me.Controllers.v1
@@ -23,19 +24,19 @@ namespace refactor_me.Controllers.v1
 
 		[Route]
 		[HttpGet]
-		public IHttpActionResult GetAllOptions(Guid productId)
+		public async Task<IHttpActionResult> GetAllOptionsAsync(Guid productId)
 		{
-			return Ok(_productOptionsRepository.GetAll(productId));
+			return Ok(await _productOptionsRepository.GetAllAsync(productId));
 		}
 
 		[Route("{id}")]
 		[HttpGet]
-		public IHttpActionResult GetOption(Guid productId, Guid id)
+		public async Task<IHttpActionResult> GetOptionAsync(Guid productId, Guid id)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
-			var productOption = _productOptionsRepository.GetById(id, productId);
+			var productOption = await _productOptionsRepository.GetByIdAsync(id, productId);
 
 			if (productOption == null)
 				return NotFound();
@@ -45,19 +46,19 @@ namespace refactor_me.Controllers.v1
 
 		[Route]
 		[HttpPost]
-		public IHttpActionResult CreateOption(Guid productId, [FromBody] ProductOption productOption)
+		public async Task<IHttpActionResult> CreateOptionAsync(Guid productId, [FromBody] ProductOption productOption)
 		{
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			var productToAddOptionTo = _productRepository.GetById(productId);
+			var productToAddOptionTo = await _productRepository.GetByIdAsync(productId);
 
 			if (productToAddOptionTo == null)
 				return BadRequest("Product doesn't exist.");
 
-			_productOptionsRepository.Save(productId, productOption);
+			await _productOptionsRepository.SaveAsync(productId, productOption);
 
-			var newProductOption = _productRepository.GetById(productOption.Id);
+			var newProductOption = await _productRepository.GetByIdAsync(productOption.Id);
 
 			if (newProductOption == null)
 				return InternalServerError();
@@ -67,7 +68,7 @@ namespace refactor_me.Controllers.v1
 
 		[Route("{id}")]
 		[HttpPut]
-		public IHttpActionResult UpdateOption(Guid productId, Guid id, [FromBody] ProductOption updatedProductOption)
+		public async Task<IHttpActionResult> UpdateOptionAsync(Guid productId, Guid id, [FromBody] ProductOption updatedProductOption)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
@@ -75,34 +76,34 @@ namespace refactor_me.Controllers.v1
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			var existingProduct = _productRepository.GetById(id);
+			var existingProduct = await _productRepository.GetByIdAsync(id);
 
 			if (existingProduct == null)
 				return BadRequest("Product doesn't exist.");
 
-			_productOptionsRepository.Update(id, productId, updatedProductOption);
+			await _productOptionsRepository.UpdateAsync(id, productId, updatedProductOption);
 
 			return Ok();
 		}
 
-		[Route("{productId}/options/{id}")]
+		[Route("{id}")]
 		[HttpDelete]
-		public IHttpActionResult DeleteOption(Guid productId, Guid id)
+		public async Task<IHttpActionResult> DeleteOptionAsync(Guid productId, Guid id)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
-			var existingProduct = _productRepository.GetById(id);
+			var existingProduct = await _productRepository.GetByIdAsync(id);
 
 			if (existingProduct == null)
 				return BadRequest("Product doesn't exist.");
 
-			var productOptionToDelete = _productOptionsRepository.GetById(id, productId);
+			var productOptionToDelete = await _productOptionsRepository.GetByIdAsync(id, productId);
 
 			if (productOptionToDelete == null)
 				return NotFound();
 
-			_productOptionsRepository.Delete(id, productId);
+			await _productOptionsRepository.DeleteAsync(id, productId);
 
 			return Ok();
 		}

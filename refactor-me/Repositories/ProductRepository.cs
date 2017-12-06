@@ -11,90 +11,90 @@ namespace refactor_me.Repositories
 {
 	public interface IProductRepository
 	{
-		Products GetAll();
-		Products GetByName(string name);
-		Product GetById(Guid Id);
-		void Save(Product product);
-		void Update(Guid Id, Product product);
-		void Delete(Guid Id);
+		Task<Products> GetAllAsync();
+		Task<Products> GetByNameAsync(string name);
+		Task<Product> GetByIdAsync(Guid Id);
+		Task SaveAsync(Product product);
+		Task UpdateAsync(Guid Id, Product product);
+		Task DeleteAsync(Guid Id);
 	}
 
 	public class ProductRepository : IProductRepository
 	{
-		public Products GetAll()
+		public async Task<Products> GetAllAsync()
 		{
 			var products = new Products();
 
 			using (var context = new ProductContext())
 			{
-				products.Items = context.Products
+				products.Items = await context.Products
 										.Include(p => p.Options)
-										.ToList();
+										.ToListAsync();
 			}
 
 			return products;
 		}
 
-		public Products GetByName(string name)
+		public async Task<Products> GetByNameAsync(string name)
 		{
 			var products = new Products();
 
 			using (var context = new ProductContext())
 			{
-				products.Items = context.Products
+				products.Items = await context.Products
 										.Include(p => p.Options)
 										.Where(p => p.Name.Contains(name))
-										.ToList();
+										.ToListAsync();
 			}
 
 			return products;
 		}
 
-		public Product GetById(Guid Id)
+		public async Task<Product> GetByIdAsync(Guid Id)
 		{
 			Product product = null;
 
 			using (var context = new ProductContext())
 			{
-				product = context.Products
+				product = await context.Products
 								 .Where(p => p.Id == Id)
-								 .FirstOrDefault();
+								 .FirstOrDefaultAsync();
 			}
 
 			return product;
 		}
 
-		public void Save(Product product)
+		public async Task SaveAsync(Product product)
 		{
 			using (var context = new ProductContext())
 			{
 				context.Products.Add(product);
-				context.SaveChanges();
+				await context.SaveChangesAsync();
 			}
 		}
 
-		public void Update(Guid Id, Product updatedProduct)
+		public async Task UpdateAsync(Guid Id, Product updatedProduct)
 		{
 			using (var context = new ProductContext())
 			{
-				var existingProduct = context.Products.FirstOrDefault(p => p.Id == Id);
+				var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == Id);
 
 				context.Entry(existingProduct).CurrentValues.SetValues(updatedProduct);
 
-				context.SaveChanges();
+				await context.SaveChangesAsync();
 			}
 		}
 
-		public void Delete(Guid Id)
+		public async Task DeleteAsync(Guid Id)
 		{
 			using (var context = new ProductContext())
 			{
-				var existing_product = context.Products.FirstOrDefault(p => p.Id == Id);
+				var existing_product = await context.Products.FirstOrDefaultAsync(p => p.Id == Id);
 
 				if (existing_product != null)
 				{
 					context.Products.Remove(existing_product);
-					context.SaveChanges();
+					await context.SaveChangesAsync();
 				}
 			}
 		}

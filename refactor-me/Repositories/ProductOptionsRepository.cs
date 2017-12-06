@@ -2,84 +2,90 @@
 using refactor_me.Views;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace refactor_me.Repositories
 {
 	public interface IProductOptionsRepository
 	{
-		ProductOptions GetAll(Guid productId);
-		ProductOption GetById(Guid id, Guid productId);
-		void Save(Guid productId, ProductOption productOption);
-		void Update(Guid Id, Guid productId, ProductOption productOption);
-		void Delete(Guid Id, Guid productId);
+		Task<ProductOptions> GetAllAsync(Guid productId);
+		Task<ProductOption> GetByIdAsync(Guid id, Guid productId);
+		Task SaveAsync(Guid productId, ProductOption productOption);
+		Task UpdateAsync(Guid Id, Guid productId, ProductOption productOption);
+		Task DeleteAsync(Guid Id, Guid productId);
 	}
 
 	public class ProductOptionsRepository : IProductOptionsRepository
 	{
-		public ProductOptions GetAll(Guid productId)
+		public async Task<ProductOptions> GetAllAsync(Guid productId)
 		{
 			var productOptions = new ProductOptions();
 
 			using (var context = new ProductContext())
 			{
-				productOptions.Items = context.ProductOptions.Where(p => p.ProductId == productId).ToList();
+				productOptions.Items = await context.ProductOptions
+					.Where(p => p.ProductId == productId)
+					.ToListAsync();
 			}
 
 			return productOptions;
 		}
 
-		public ProductOption GetById(Guid id, Guid productId)
+		public async Task<ProductOption> GetByIdAsync(Guid id, Guid productId)
 		{
 			ProductOption productOption = null;
 
 			using (var context = new ProductContext())
 			{
-				productOption = context.ProductOptions
-								 .Where(p => p.Id == id && p.ProductId == productId)
-								 .FirstOrDefault();
+				productOption = await context.ProductOptions
+					.Where(p => p.Id == id && p.ProductId == productId)
+					.FirstOrDefaultAsync();
 			}
 
 			return productOption;
 		}
 
-		public void Save(Guid productId, ProductOption productOption)
+		public async Task SaveAsync(Guid productId, ProductOption productOption)
 		{
 			using (var context = new ProductContext())
 			{
-				var product = context.Products.FirstOrDefault(p => p.Id == productId);
+				var product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
 
 				if (product != null)
 				{
 					product.Options.Add(productOption);
-					context.SaveChanges();
+					await context.SaveChangesAsync();
 				}
 			}
 		}
 
-		public void Update(Guid Id, Guid productId, ProductOption updatedProductOption)
+		public async Task UpdateAsync(Guid Id, Guid productId, ProductOption updatedProductOption)
 		{
 			using (var context = new ProductContext())
 			{
-				var existingProductOption = context.ProductOptions.FirstOrDefault(p => p.Id == Id && p.ProductId == productId);
+				var existingProductOption = await context.ProductOptions
+					.FirstOrDefaultAsync(p => p.Id == Id && p.ProductId == productId);
 
 				context.Entry(existingProductOption).CurrentValues.SetValues(updatedProductOption);
 
-				context.SaveChanges();
+				await context.SaveChangesAsync();
 			}
 		}
 
-		public void Delete(Guid Id, Guid productId)
+		public async Task DeleteAsync(Guid Id, Guid productId)
 		{
 			using (var context = new ProductContext())
 			{
-				var existingProductOption = context.ProductOptions.FirstOrDefault(p => p.Id == Id && p.ProductId == productId);
+				var existingProductOption = await context.ProductOptions
+					.FirstOrDefaultAsync(p => p.Id == Id && p.ProductId == productId);
 
 				if (existingProductOption != null)
 				{
 					context.ProductOptions.Remove(existingProductOption);
-					context.SaveChanges();
+					await context.SaveChangesAsync();
 				}
 			}
 		}
