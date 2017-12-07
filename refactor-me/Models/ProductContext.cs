@@ -1,4 +1,5 @@
-﻿using System;
+﻿using refactor_me.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;

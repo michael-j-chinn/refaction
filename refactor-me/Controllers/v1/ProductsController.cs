@@ -21,22 +21,18 @@ namespace refactor_me.Controllers
 			_productRepository = productRepository;
 		}
 
-		/// <summary>
-		/// Get all available products.
-		/// </summary>
-		/// <returns>An array of products.</returns>
 		[Route]
 		[HttpGet]
-		public async Task<IHttpActionResult> GetAllAsync()
+		public async Task<IHttpActionResult> GetAllAsync(int limit = 1, int offset = 0)
 		{
-			return Ok(await _productRepository.GetAllAsync());
+			return Ok(await _productRepository.GetAllAsync(Url.Request.RequestUri, limit, offset));
 		}
 
 		[Route("search")]
 		[HttpGet]
-		public async Task<IHttpActionResult> SearchAsync(string name)
+		public async Task<IHttpActionResult> SearchAsync(string name, int limit = 1, int offset = 0)
 		{
-			return Ok(await _productRepository.GetByNameAsync(name));
+			return Ok(await _productRepository.GetByNameAsync(Url.Request.RequestUri, name, limit, offset));
 		}
 
 		[Route("{id}")]

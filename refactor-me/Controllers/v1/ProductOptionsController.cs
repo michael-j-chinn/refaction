@@ -24,9 +24,9 @@ namespace refactor_me.Controllers.v1
 
 		[Route]
 		[HttpGet]
-		public async Task<IHttpActionResult> GetAllOptionsAsync(Guid productId)
+		public async Task<IHttpActionResult> GetAllOptionsAsync(Guid productId, int limit = 1, int offset = 0)
 		{
-			return Ok(await _productOptionsRepository.GetAllAsync(productId));
+			return Ok(await _productOptionsRepository.GetAllAsync(productId, Url.Request.RequestUri, limit, offset));
 		}
 
 		[Route("{id}")]

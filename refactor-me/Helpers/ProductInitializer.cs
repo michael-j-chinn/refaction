@@ -5,9 +5,9 @@ using System.Data.Entity;
 using System.Linq;
 using System.Web;
 
-namespace refactor_me.Models
+namespace refactor_me.Helpers
 {
-	public class ProductInitializer : DropCreateDatabaseIfModelChanges<ProductContext>
+	public class ProductInitializer : DropCreateDatabaseAlways<ProductContext>
 	{
 		protected override void Seed(ProductContext context)
 		{
@@ -45,6 +45,22 @@ namespace refactor_me.Models
 					Description = "Standard office paperclip",
 					Price = 0.15m,
 					DeliveryPrice = 0.16m
+				},
+				new Product
+				{
+					Id = Guid.NewGuid(),
+					Name = "Cup",
+					Description = "Cup with cat smiling",
+					Price = 9.15m,
+					DeliveryPrice = 10.16m
+				},
+				new Product
+				{
+					Id = Guid.NewGuid(),
+					Name = "Cupboard",
+					Description = "Cupboard to put your cat cups in",
+					Price = 9.15m,
+					DeliveryPrice = 10.16m
 				}
 			};
 

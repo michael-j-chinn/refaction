@@ -11,7 +11,7 @@ namespace refactor_me.Repositories
 {
 	public interface IProductOptionsRepository
 	{
-		Task<ProductOptions> GetAllAsync(Guid productId);
+		Task<ProductOptions> GetAllAsync(Guid productId, Uri url, int limit, int offset);
 		Task<ProductOption> GetByIdAsync(Guid id, Guid productId);
 		Task SaveAsync(Guid productId, ProductOption productOption);
 		Task UpdateAsync(Guid Id, Guid productId, ProductOption productOption);
@@ -20,14 +20,21 @@ namespace refactor_me.Repositories
 
 	public class ProductOptionsRepository : IProductOptionsRepository
 	{
-		public async Task<ProductOptions> GetAllAsync(Guid productId)
+		public async Task<ProductOptions> GetAllAsync(Guid productId, Uri url, int limit, int offset)
 		{
 			var productOptions = new ProductOptions();
 
 			using (var context = new ProductContext())
 			{
-				productOptions.Items = await context.ProductOptions
-					.Where(p => p.ProductId == productId)
+				var query = context.ProductOptions.Where(p => p.ProductId == productId);
+				var totalRecords = await query.CountAsync();
+
+				productOptions.Paging = new Paging(url, totalRecords, limit, offset);
+
+				productOptions.Items = await query
+					.OrderBy(p => p.Name)
+					.Skip(productOptions.Paging.AdjustedOffset)
+					.Take(limit)
 					.ToListAsync();
 			}
 

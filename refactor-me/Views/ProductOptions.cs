@@ -9,5 +9,6 @@ namespace refactor_me.Views
 	public class ProductOptions
 	{
 		public List<ProductOption> Items { get; set; }
+		public Paging Paging { get; set; }
 	}
 }

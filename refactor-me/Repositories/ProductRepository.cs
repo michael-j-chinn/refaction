@@ -11,8 +11,8 @@ namespace refactor_me.Repositories
 {
 	public interface IProductRepository
 	{
-		Task<Products> GetAllAsync();
-		Task<Products> GetByNameAsync(string name);
+		Task<Products> GetAllAsync(Uri url, int limit, int offset);
+		Task<Products> GetByNameAsync(Uri url, string name, int limit, int offset);
 		Task<Product> GetByIdAsync(Guid Id);
 		Task SaveAsync(Product product);
 		Task UpdateAsync(Guid Id, Product product);
@@ -21,30 +21,45 @@ namespace refactor_me.Repositories
 
 	public class ProductRepository : IProductRepository
 	{
-		public async Task<Products> GetAllAsync()
+		public async Task<Products> GetAllAsync(Uri url, int limit = 1, int offset = 0)
 		{
 			var products = new Products();
 
 			using (var context = new ProductContext())
 			{
-				products.Items = await context.Products
-										.Include(p => p.Options)
-										.ToListAsync();
+				var query = context.Products;
+				var totalRecords = await query.CountAsync();
+
+				products.Paging = new Paging(url, totalRecords, limit, offset);
+
+				products.Items = await query
+					.OrderBy(p => p.Name)
+					.Skip(products.Paging.AdjustedOffset)
+					.Take(limit)
+					.Include(p => p.Options)
+					.ToListAsync();
 			}
 
 			return products;
 		}
 
-		public async Task<Products> GetByNameAsync(string name)
+		public async Task<Products> GetByNameAsync(Uri url, string name, int limit = 1, int offset = 0)
 		{
 			var products = new Products();
 
 			using (var context = new ProductContext())
 			{
+				var query = context.Products.Where(p => p.Name.Contains(name));
+				var totalRecords = await query.CountAsync();
+
+				products.Paging = new Paging(url, totalRecords, limit, offset);
+
 				products.Items = await context.Products
-										.Include(p => p.Options)
-										.Where(p => p.Name.Contains(name))
-										.ToListAsync();
+					.OrderBy(p => p.Name)
+					.Skip(products.Paging.AdjustedOffset)
+					.Take(limit)
+					.Include(p => p.Options)
+					.ToListAsync();
 			}
 
 			return products;

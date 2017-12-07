@@ -104,7 +104,7 @@ namespace refactor_me
 						// those comments into the generated docs and UI. You can enable this by providing the path to one or
 						// more Xml comment files.
 						//
-						c.IncludeXmlComments(GetXmlCommentsPath());
+						//c.IncludeXmlComments(GetXmlCommentsPath());
 
 						// Swashbuckle makes a best attempt at generating Swagger compliant JSON schemas for the various types
 						// exposed in your API. However, there may be occasions when more control of the output is needed.
@@ -173,7 +173,7 @@ namespace refactor_me
 						// with the same path (sans query string) and HTTP method. You can workaround this by providing a
 						// custom strategy to pick a winner or merge the descriptions for the purposes of the Swagger docs
 						//
-						c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+						//c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
 
 						// Wrap the default SwaggerGenerator with additional behavior (e.g. caching) or provide an
 						// alternative implementation for ISwaggerProvider with the CustomProvider option.
