@@ -11,7 +11,7 @@ namespace refactor_me.Models
 	{
 		public ProductContext() : base("ProductsContext")
 		{
-			Database.SetInitializer<ProductContext>(new ProductInitializer());
+			//Database.SetInitializer<ProductContext>(new ProductInitializer());
 		}
 
 		public DbSet<Product> Products { get; set; }

@@ -1,5 +1,6 @@
 ﻿using refactor_me.Models;
 using refactor_me.Repositories;
+using refactor_me.Views;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,7 +47,7 @@ namespace refactor_me.Controllers.v1
 
 		[Route]
 		[HttpPost]
-		public async Task<IHttpActionResult> CreateOptionAsync(Guid productId, [FromBody] ProductOption productOption)
+		public async Task<IHttpActionResult> CreateOptionAsync(Guid productId, [FromBody] ProductOptionDto productOption)
 		{
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
@@ -56,9 +57,13 @@ namespace refactor_me.Controllers.v1
 			if (productToAddOptionTo == null)
 				return BadRequest("Product doesn't exist.");
 
-			await _productOptionsRepository.SaveAsync(productId, productOption);
+			// Map Dto to Model
+			var productOptionToCreate = new ProductOption();
+			productOptionToCreate.MapDto(productOption, productId);
 
-			var newProductOption = await _productRepository.GetByIdAsync(productOption.Id);
+			await _productOptionsRepository.SaveAsync(productId, productOptionToCreate);
+
+			var newProductOption = await _productOptionsRepository.GetByIdAsync(productOptionToCreate.Id, productId);
 
 			if (newProductOption == null)
 				return InternalServerError();
@@ -68,7 +73,7 @@ namespace refactor_me.Controllers.v1
 
 		[Route("{id}")]
 		[HttpPut]
-		public async Task<IHttpActionResult> UpdateOptionAsync(Guid productId, Guid id, [FromBody] ProductOption updatedProductOption)
+		public async Task<IHttpActionResult> UpdateOptionAsync(Guid productId, Guid id, [FromBody] ProductOptionDto updatedProductOption)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
@@ -76,12 +81,16 @@ namespace refactor_me.Controllers.v1
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			var existingProduct = await _productRepository.GetByIdAsync(id);
+			var existingProduct = await _productRepository.GetByIdAsync(productId);
 
 			if (existingProduct == null)
 				return BadRequest("Product doesn't exist.");
 
-			await _productOptionsRepository.UpdateAsync(id, productId, updatedProductOption);
+			// Map Dto to Model
+			var productOptionToUpdate = new ProductOption();
+			productOptionToUpdate.MapDto(updatedProductOption, productId);
+
+			await _productOptionsRepository.UpdateAsync(id, productId, productOptionToUpdate);
 
 			return Ok();
 		}
@@ -93,7 +102,7 @@ namespace refactor_me.Controllers.v1
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
-			var existingProduct = await _productRepository.GetByIdAsync(id);
+			var existingProduct = await _productRepository.GetByIdAsync(productId);
 
 			if (existingProduct == null)
 				return BadRequest("Product doesn't exist.");

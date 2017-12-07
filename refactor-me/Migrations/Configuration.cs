@@ -10,7 +10,6 @@ namespace refactor_me.Migrations
 		public Configuration()
 		{
 			AutomaticMigrationsEnabled = false;
-			ContextKey = "refactor_me.Models.ProductContext";
 		}
 
 		protected override void Seed(refactor_me.Models.ProductContext context)

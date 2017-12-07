@@ -96,8 +96,9 @@ namespace refactor_me.Repositories
 				using (var context = new ProductContext())
 				{
 					product = await context.Products
-									 .Where(p => p.Id == id)
-									 .FirstOrDefaultAsync();
+						.Where(p => p.Id == id)
+						.Include(p => p.Options)
+						.FirstOrDefaultAsync();
 				}
 			}
 			catch (Exception ex)
@@ -132,7 +133,10 @@ namespace refactor_me.Repositories
 				{
 					var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
 
-					context.Entry(existingProduct).CurrentValues.SetValues(updatedProduct);
+					existingProduct.Name = updatedProduct.Name;
+					existingProduct.Description = updatedProduct.Description;
+					existingProduct.Price = updatedProduct.Price;
+					existingProduct.DeliveryPrice = updatedProduct.DeliveryPrice;
 
 					await context.SaveChangesAsync();
 				}

@@ -7,16 +7,16 @@ namespace refactor_me.Models
 {
 	public class EntityUrlByID
 	{
-		private string url;
+		private string _url;
 
 		public EntityUrlByID(Uri requestUrl, Guid id)
 		{
-			var url = $"{requestUrl.Scheme}://{requestUrl.Authority}{requestUrl.AbsolutePath}/{id}";
+			_url = $"{requestUrl.Scheme}://{requestUrl.Authority}{requestUrl.AbsolutePath}/{id}";
 		}
 
 		public override string ToString()
 		{
-			return url;
+			return _url;
 		}
 	}
 }

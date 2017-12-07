@@ -53,14 +53,18 @@ namespace refactor_me.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IHttpActionResult> CreateAsync([FromBody] Product product)
+		public async Task<IHttpActionResult> CreateAsync([FromBody] ProductDto product)
 		{
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
-			await _productRepository.SaveAsync(product);
+			// Map Dto to Model
+			var productToCreate = new Product();
+			productToCreate.MapDto(product);
 
-			var newProduct = await _productRepository.GetByIdAsync(product.Id);
+			await _productRepository.SaveAsync(productToCreate);
+
+			var newProduct = await _productRepository.GetByIdAsync(productToCreate.Id);
 
 			if (newProduct == null)
 				return InternalServerError();
@@ -70,7 +74,7 @@ namespace refactor_me.Controllers
 
 		[Route("{id}")]
 		[HttpPut]
-		public async Task<IHttpActionResult> UpdateAsync(Guid id, [FromBody] Product updatedProduct)
+		public async Task<IHttpActionResult> UpdateAsync(Guid id, [FromBody] ProductDto updatedProduct)
 		{
 			if (id == null)
 				return BadRequest("An ID must be provided.");
@@ -83,7 +87,11 @@ namespace refactor_me.Controllers
 			if (existingProduct == null)
 				return NotFound();
 
-			await _productRepository.UpdateAsync(id, updatedProduct);
+			// Map Dto to Model
+			var productToUpdate = new Product();
+			productToUpdate.MapDto(updatedProduct);
+
+			await _productRepository.UpdateAsync(id, productToUpdate);
 
 			return Ok();
 		}

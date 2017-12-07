@@ -83,13 +83,8 @@ namespace refactor_me.Repositories
 			{
 				using (var context = new ProductContext())
 				{
-					var product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
-
-					if (product != null)
-					{
-						product.Options.Add(productOption);
-						await context.SaveChangesAsync();
-					}
+					context.ProductOptions.Add(productOption);
+					await context.SaveChangesAsync();
 				}
 			}
 			catch (Exception ex)
@@ -107,7 +102,8 @@ namespace refactor_me.Repositories
 					var existingProductOption = await context.ProductOptions
 						.FirstOrDefaultAsync(p => p.Id == id && p.ProductId == productId);
 
-					context.Entry(existingProductOption).CurrentValues.SetValues(updatedProductOption);
+					existingProductOption.Name = updatedProductOption.Name;
+					existingProductOption.Description = updatedProductOption.Description;
 
 					await context.SaveChangesAsync();
 				}
