@@ -21,6 +21,10 @@ namespace refactor_me.Controllers
 			_productRepository = productRepository;
 		}
 
+		/// <summary>
+		/// Get all available products.
+		/// </summary>
+		/// <returns>An array of products.</returns>
 		[Route]
 		[HttpGet]
 		public async Task<IHttpActionResult> GetAllAsync()
@@ -28,9 +32,9 @@ namespace refactor_me.Controllers
 			return Ok(await _productRepository.GetAllAsync());
 		}
 
-		[Route]
+		[Route("search")]
 		[HttpGet]
-		public async Task<IHttpActionResult> SearchByNameAsync(string name)
+		public async Task<IHttpActionResult> SearchAsync(string name)
 		{
 			return Ok(await _productRepository.GetByNameAsync(name));
 		}
