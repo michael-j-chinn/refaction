@@ -20,9 +20,9 @@ namespace refactor_me_tests
 		public async Task TestProductsGetAllAsync_ShouldBeOneResultAndOk()
 		{
 			var url = new Uri("http://localhost:8080/api/v1/products");
-			var mock = new Mock<IProductRepository>();
+			var mockProductRepo = new Mock<IProductRepository>();
 
-			mock
+			mockProductRepo
 				.Setup(p => p.GetAllAsync(url, 1, 0))
 				.ReturnsAsync(new Products
 				{
@@ -31,8 +31,10 @@ namespace refactor_me_tests
 						new Product { Name = "First" }
 					}
 				});
-				
-			var controller = new ProductsController(mock.Object);
+
+			var mockLoggerService = new Mock<ILoggerService>();
+
+			var controller = new ProductsController(mockProductRepo.Object, mockLoggerService.Object);
 			controller.Url = new UrlHelper(new HttpRequestMessage(HttpMethod.Get, url));
 
 			var result = await controller.GetAllAsync(1, 0) as OkNegotiatedContentResult<Products>;
