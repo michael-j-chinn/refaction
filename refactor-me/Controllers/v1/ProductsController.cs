@@ -44,6 +44,7 @@ namespace refactor_me.Controllers
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
+			// Verify id is valid.
 			var product = await _productRepository.GetByIdAsync(id);
 
 			if (product == null)
@@ -64,6 +65,7 @@ namespace refactor_me.Controllers
 
 			await _productRepository.SaveAsync(productToCreate);
 
+			// Verify save was successful
 			var newProduct = await _productRepository.GetByIdAsync(productToCreate.Id);
 
 			if (newProduct == null)
@@ -82,6 +84,7 @@ namespace refactor_me.Controllers
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
+			// Verify id is valid.
 			var existingProduct = await _productRepository.GetByIdAsync(id);
 
 			if (existingProduct == null)
@@ -103,6 +106,7 @@ namespace refactor_me.Controllers
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
+			// Verify id is valid.
 			var productToDelete = await _productRepository.GetByIdAsync(id);
 
 			if (productToDelete == null)

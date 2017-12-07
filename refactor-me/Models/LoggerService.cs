@@ -28,19 +28,22 @@ namespace refactor_me.Models
 
 		public LoggerService(string directory = "", string filename = "")
 		{
+			// Set where logs will get saved.
 			_directory = string.IsNullOrWhiteSpace(directory) ? AppDomain.CurrentDomain.BaseDirectory : directory;
 			_directory = !_directory.EndsWith("\\") ? _directory + "\\" : _directory;
 			_filename = string.IsNullOrWhiteSpace(filename) ? "log.txt" : filename;
 
+			// Create the root logger
 			var hierarchy = ((Hierarchy)LogManager.GetRepository());
 			hierarchy.Threshold = Level.Debug;
 
 			var root = hierarchy.Root;
 
-			// Initialize root logger with the default appender. Match appender name to logger name for easly lookups later.
+			// Initialize root logger with the default appender.
 			var rollingFileAppender = CreateRollingFileAppender(_DEFAULT_LOGGER_NAME, _DEFAULT_APPENDER_FOLDER);
 			root.AddAppender(rollingFileAppender);
 
+			// Create the logger interface object
 			_rootLogger = CreateNewLogger(hierarchy, rollingFileAppender, _ROOT_LOGGER_NAME);
 		}
 
@@ -79,12 +82,14 @@ namespace refactor_me.Models
 		{
 			Dictionary<string, object> record = new Dictionary<string, object>();
 
+			// Set default properties
 			record.Add("timestamp", DateTime.UtcNow);
 			record.Add("level", level.ToString());
 			record.Add("threadId", Thread.CurrentThread.ManagedThreadId);
 			record.Add("message", message);
 			record.Add("machineName", Environment.MachineName);
 
+			// Add any custom properties from user.
 			if (customProps != null)
 			{
 				foreach (var kvp in customProps)
@@ -94,6 +99,7 @@ namespace refactor_me.Models
 				}
 			}
 
+			// Add exception specific properties.
 			if (exception != null)
 			{
 				record.Add("exStackTrace", exception.StackTrace);

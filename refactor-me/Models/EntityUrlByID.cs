@@ -11,6 +11,7 @@ namespace refactor_me.Models
 
 		public EntityUrlByID(Uri requestUrl, Guid id)
 		{
+			// Build uri to get this entity
 			_url = $"{requestUrl.Scheme}://{requestUrl.Authority}{requestUrl.AbsolutePath}/{id}";
 		}
 

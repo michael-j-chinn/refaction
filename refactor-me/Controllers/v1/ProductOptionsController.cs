@@ -52,6 +52,7 @@ namespace refactor_me.Controllers.v1
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
+			// Verify product ID is valid
 			var productToAddOptionTo = await _productRepository.GetByIdAsync(productId);
 
 			if (productToAddOptionTo == null)
@@ -63,6 +64,7 @@ namespace refactor_me.Controllers.v1
 
 			await _productOptionsRepository.SaveAsync(productId, productOptionToCreate);
 
+			// Verify save was successful
 			var newProductOption = await _productOptionsRepository.GetByIdAsync(productOptionToCreate.Id, productId);
 
 			if (newProductOption == null)
@@ -81,6 +83,7 @@ namespace refactor_me.Controllers.v1
 			if (!ModelState.IsValid)
 				return BadRequest(ModelState);
 
+			// Verify product ID is valid
 			var existingProduct = await _productRepository.GetByIdAsync(productId);
 
 			if (existingProduct == null)
@@ -102,11 +105,13 @@ namespace refactor_me.Controllers.v1
 			if (id == null)
 				return BadRequest("An ID must be provided.");
 
+			// Verify product ID is valid
 			var existingProduct = await _productRepository.GetByIdAsync(productId);
 
 			if (existingProduct == null)
 				return BadRequest("Product doesn't exist.");
 
+			// Verify combination is valid
 			var productOptionToDelete = await _productOptionsRepository.GetByIdAsync(id, productId);
 
 			if (productOptionToDelete == null)
