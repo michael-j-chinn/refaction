@@ -1,4 +1,5 @@
-﻿using refactor_me.Models;
+﻿using Newtonsoft.Json;
+using refactor_me.Models;
 using refactor_me.Views;
 using System;
 using System.Collections.Generic;
@@ -14,28 +15,42 @@ namespace refactor_me.Repositories
 		Task<ProductOptions> GetAllAsync(Guid productId, Uri url, int limit, int offset);
 		Task<ProductOption> GetByIdAsync(Guid id, Guid productId);
 		Task SaveAsync(Guid productId, ProductOption productOption);
-		Task UpdateAsync(Guid Id, Guid productId, ProductOption productOption);
-		Task DeleteAsync(Guid Id, Guid productId);
+		Task UpdateAsync(Guid id, Guid productId, ProductOption productOption);
+		Task DeleteAsync(Guid id, Guid productId);
 	}
 
 	public class ProductOptionsRepository : IProductOptionsRepository
 	{
+		private ILoggerService _logger;
+
+		public ProductOptionsRepository(ILoggerService logger)
+		{
+			_logger = logger;
+		}
+
 		public async Task<ProductOptions> GetAllAsync(Guid productId, Uri url, int limit, int offset)
 		{
 			var productOptions = new ProductOptions();
 
-			using (var context = new ProductContext())
+			try
 			{
-				var query = context.ProductOptions.Where(p => p.ProductId == productId);
-				var totalRecords = await query.CountAsync();
+				using (var context = new ProductContext())
+				{
+					var query = context.ProductOptions.Where(p => p.ProductId == productId);
+					var totalRecords = await query.CountAsync();
 
-				productOptions.Paging = new Paging(url, totalRecords, limit, offset);
+					productOptions.Paging = new Paging(url, totalRecords, limit, offset);
 
-				productOptions.Items = await query
-					.OrderBy(p => p.Name)
-					.Skip(productOptions.Paging.AdjustedOffset)
-					.Take(limit)
-					.ToListAsync();
+					productOptions.Items = await query
+						.OrderBy(p => p.Name)
+						.Skip(productOptions.Paging.AdjustedOffset)
+						.Take(limit)
+						.ToListAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while retrieving all product options.", ex, new Dictionary<string, object> { { "requestUrl", url.AbsoluteUri } });
 			}
 
 			return productOptions;
@@ -45,11 +60,18 @@ namespace refactor_me.Repositories
 		{
 			ProductOption productOption = null;
 
-			using (var context = new ProductContext())
+			try
 			{
-				productOption = await context.ProductOptions
-					.Where(p => p.Id == id && p.ProductId == productId)
-					.FirstOrDefaultAsync();
+				using (var context = new ProductContext())
+				{
+					productOption = await context.ProductOptions
+						.Where(p => p.Id == id && p.ProductId == productId)
+						.FirstOrDefaultAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while retrieving all product option by ID.", ex, new Dictionary<string, object> { { "id", id }, { "productId", productId } });
 			}
 
 			return productOption;
@@ -57,43 +79,64 @@ namespace refactor_me.Repositories
 
 		public async Task SaveAsync(Guid productId, ProductOption productOption)
 		{
-			using (var context = new ProductContext())
+			try
 			{
-				var product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
-
-				if (product != null)
+				using (var context = new ProductContext())
 				{
-					product.Options.Add(productOption);
-					await context.SaveChangesAsync();
+					var product = await context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+
+					if (product != null)
+					{
+						product.Options.Add(productOption);
+						await context.SaveChangesAsync();
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while saving product option.", ex, new Dictionary<string, object> { { "productId", productId }, { "productOption", JsonConvert.SerializeObject(productOption) } });
 			}
 		}
 
-		public async Task UpdateAsync(Guid Id, Guid productId, ProductOption updatedProductOption)
+		public async Task UpdateAsync(Guid id, Guid productId, ProductOption updatedProductOption)
 		{
-			using (var context = new ProductContext())
+			try
 			{
-				var existingProductOption = await context.ProductOptions
-					.FirstOrDefaultAsync(p => p.Id == Id && p.ProductId == productId);
+				using (var context = new ProductContext())
+				{
+					var existingProductOption = await context.ProductOptions
+						.FirstOrDefaultAsync(p => p.Id == id && p.ProductId == productId);
 
-				context.Entry(existingProductOption).CurrentValues.SetValues(updatedProductOption);
+					context.Entry(existingProductOption).CurrentValues.SetValues(updatedProductOption);
 
-				await context.SaveChangesAsync();
+					await context.SaveChangesAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while updating product option.", ex, new Dictionary<string, object> { { "id", id }, { "productId", productId }, { "productOption", JsonConvert.SerializeObject(updatedProductOption) } });
 			}
 		}
 
-		public async Task DeleteAsync(Guid Id, Guid productId)
+		public async Task DeleteAsync(Guid id, Guid productId)
 		{
-			using (var context = new ProductContext())
+			try
 			{
-				var existingProductOption = await context.ProductOptions
-					.FirstOrDefaultAsync(p => p.Id == Id && p.ProductId == productId);
-
-				if (existingProductOption != null)
+				using (var context = new ProductContext())
 				{
-					context.ProductOptions.Remove(existingProductOption);
-					await context.SaveChangesAsync();
+					var existingProductOption = await context.ProductOptions
+						.FirstOrDefaultAsync(p => p.Id == id && p.ProductId == productId);
+
+					if (existingProductOption != null)
+					{
+						context.ProductOptions.Remove(existingProductOption);
+						await context.SaveChangesAsync();
+					}
 				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while deleting product option.", ex, new Dictionary<string, object> { { "id", id }, { "productId", productId } });
 			}
 		}
 	}

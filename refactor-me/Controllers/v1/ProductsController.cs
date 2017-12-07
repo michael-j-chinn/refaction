@@ -15,10 +15,12 @@ namespace refactor_me.Controllers
 	{
 		// Response code choices referenced from https://docs.microsoft.com/en-us/azure/architecture/best-practices/api-design
 		private IProductRepository _productRepository;
+		private ILoggerService _logger;
 
-		public ProductsController(IProductRepository productRepository)
+		public ProductsController(IProductRepository productRepository, ILoggerService logger)
 		{
 			_productRepository = productRepository;
+			_logger = logger;
 		}
 
 		[Route]
@@ -63,7 +65,7 @@ namespace refactor_me.Controllers
 			if (newProduct == null)
 				return InternalServerError();
 			else
-				return Created("TODO: URI", newProduct);
+				return Created(new EntityUrlByID(Url.Request.RequestUri, newProduct.Id).ToString(), newProduct);
 		}
 
 		[Route("{id}")]

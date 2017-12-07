@@ -63,7 +63,7 @@ namespace refactor_me.Controllers.v1
 			if (newProductOption == null)
 				return InternalServerError();
 			else
-				return Created("TODO: URI", newProductOption);
+				return Created(new EntityUrlByID(Url.Request.RequestUri, newProductOption.Id).ToString(), newProductOption);
 		}
 
 		[Route("{id}")]

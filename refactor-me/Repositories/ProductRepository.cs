@@ -6,6 +6,7 @@ using System.Linq;
 using System.Web;
 using System.Data.Entity;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace refactor_me.Repositories
 {
@@ -13,31 +14,45 @@ namespace refactor_me.Repositories
 	{
 		Task<Products> GetAllAsync(Uri url, int limit, int offset);
 		Task<Products> GetByNameAsync(Uri url, string name, int limit, int offset);
-		Task<Product> GetByIdAsync(Guid Id);
+		Task<Product> GetByIdAsync(Guid id);
 		Task SaveAsync(Product product);
-		Task UpdateAsync(Guid Id, Product product);
-		Task DeleteAsync(Guid Id);
+		Task UpdateAsync(Guid id, Product product);
+		Task DeleteAsync(Guid id);
 	}
 
 	public class ProductRepository : IProductRepository
 	{
+		private ILoggerService _logger;
+
+		public ProductRepository(ILoggerService logger)
+		{
+			_logger = logger;
+		}
+
 		public async Task<Products> GetAllAsync(Uri url, int limit = 1, int offset = 0)
 		{
 			var products = new Products();
 
-			using (var context = new ProductContext())
+			try
 			{
-				var query = context.Products;
-				var totalRecords = await query.CountAsync();
+				using (var context = new ProductContext())
+				{
+					var query = context.Products;
+					var totalRecords = await query.CountAsync();
 
-				products.Paging = new Paging(url, totalRecords, limit, offset);
+					products.Paging = new Paging(url, totalRecords, limit, offset);
 
-				products.Items = await query
-					.OrderBy(p => p.Name)
-					.Skip(products.Paging.AdjustedOffset)
-					.Take(limit)
-					.Include(p => p.Options)
-					.ToListAsync();
+					products.Items = await query
+						.OrderBy(p => p.Name)
+						.Skip(products.Paging.AdjustedOffset)
+						.Take(limit)
+						.Include(p => p.Options)
+						.ToListAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while retrieving all products.", ex, new Dictionary<string, object> { { "requestUrl", url.AbsoluteUri } });
 			}
 
 			return products;
@@ -47,33 +62,47 @@ namespace refactor_me.Repositories
 		{
 			var products = new Products();
 
-			using (var context = new ProductContext())
+			try
 			{
-				var query = context.Products.Where(p => p.Name.Contains(name));
-				var totalRecords = await query.CountAsync();
+				using (var context = new ProductContext())
+				{
+					var query = context.Products.Where(p => p.Name.Contains(name));
+					var totalRecords = await query.CountAsync();
 
-				products.Paging = new Paging(url, totalRecords, limit, offset);
+					products.Paging = new Paging(url, totalRecords, limit, offset);
 
-				products.Items = await context.Products
-					.OrderBy(p => p.Name)
-					.Skip(products.Paging.AdjustedOffset)
-					.Take(limit)
-					.Include(p => p.Options)
-					.ToListAsync();
+					products.Items = await context.Products
+						.OrderBy(p => p.Name)
+						.Skip(products.Paging.AdjustedOffset)
+						.Take(limit)
+						.Include(p => p.Options)
+						.ToListAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while searching products by name.", ex, new Dictionary<string, object> { { "requestUrl", url.AbsoluteUri }, { "name", name } });
 			}
 
 			return products;
 		}
 
-		public async Task<Product> GetByIdAsync(Guid Id)
+		public async Task<Product> GetByIdAsync(Guid id)
 		{
 			Product product = null;
 
-			using (var context = new ProductContext())
+			try
 			{
-				product = await context.Products
-								 .Where(p => p.Id == Id)
-								 .FirstOrDefaultAsync();
+				using (var context = new ProductContext())
+				{
+					product = await context.Products
+									 .Where(p => p.Id == id)
+									 .FirstOrDefaultAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while searching products by ID.", ex, new Dictionary<string, object> { { "id", id } });
 			}
 
 			return product;
@@ -81,36 +110,57 @@ namespace refactor_me.Repositories
 
 		public async Task SaveAsync(Product product)
 		{
-			using (var context = new ProductContext())
+			try
 			{
-				context.Products.Add(product);
-				await context.SaveChangesAsync();
-			}
-		}
-
-		public async Task UpdateAsync(Guid Id, Product updatedProduct)
-		{
-			using (var context = new ProductContext())
-			{
-				var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == Id);
-
-				context.Entry(existingProduct).CurrentValues.SetValues(updatedProduct);
-
-				await context.SaveChangesAsync();
-			}
-		}
-
-		public async Task DeleteAsync(Guid Id)
-		{
-			using (var context = new ProductContext())
-			{
-				var existing_product = await context.Products.FirstOrDefaultAsync(p => p.Id == Id);
-
-				if (existing_product != null)
+				using (var context = new ProductContext())
 				{
-					context.Products.Remove(existing_product);
+					context.Products.Add(product);
 					await context.SaveChangesAsync();
 				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while saving new product.", ex, new Dictionary<string, object> { { "product", JsonConvert.SerializeObject(product) } });
+			}
+		}
+
+		public async Task UpdateAsync(Guid id, Product updatedProduct)
+		{
+			try
+			{
+				using (var context = new ProductContext())
+				{
+					var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+
+					context.Entry(existingProduct).CurrentValues.SetValues(updatedProduct);
+
+					await context.SaveChangesAsync();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while updating product.", ex, new Dictionary<string, object> { { "id", id }, { "updatedProduct", JsonConvert.SerializeObject(updatedProduct) } });
+			}
+		}
+
+		public async Task DeleteAsync(Guid id)
+		{
+			try
+			{
+				using (var context = new ProductContext())
+				{
+					var existingProduct = await context.Products.FirstOrDefaultAsync(p => p.Id == id);
+
+					if (existingProduct != null)
+					{
+						context.Products.Remove(existingProduct);
+						await context.SaveChangesAsync();
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.Log(LogLevel.ERROR, "Error while deleting product.", ex, new Dictionary<string, object> { { "id", id } });
 			}
 		}
 	}
